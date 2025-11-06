@@ -6,7 +6,7 @@ import { AuthProvider } from '@/AuthProvider';
 import { antdTheme } from '@/Theme';
 
 export const metadata: Metadata = {
-  title: 'SOLI Enterprise Portal',
+  title: 'SOLI Portal',
   description: 'Modern enterprise application portal',
   keywords: ['enterprise', 'portal', 'management'],
 };

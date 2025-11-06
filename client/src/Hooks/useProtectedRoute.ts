@@ -17,7 +17,7 @@ export const useProtectedRoute = (requiredRole?: UserRole) => {
     if (!isLoading) {
       // Not authenticated
       if (!isAuthenticated) {
-        router.push(ROUTES.LOGIN);
+        router.push(ROUTES.HOME); // Redirect to home (login page)
         return;
       }
 

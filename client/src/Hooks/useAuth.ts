@@ -38,12 +38,8 @@ export const useAuth = () => {
       const userResponse = await authService.getMe();
       setUser(userResponse.data);
       
-      // Redirect based on role
-      if (userResponse.data.role === 'admin') {
-        router.push(ROUTES.FILE_UPLOAD);
-      } else {
-        router.push(ROUTES.FILE_UPLOAD);
-      }
+      // Redirect to dashboard
+      router.push(ROUTES.DASHBOARD);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -62,7 +58,7 @@ export const useAuth = () => {
       console.error('Logout error:', error);
     } finally {
       clearAuth();
-      router.push(ROUTES.LOGIN);
+      router.push(ROUTES.HOME); // Redirect to home (login page)
     }
   };
 

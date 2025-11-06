@@ -15,7 +15,7 @@ export const COOKIE_CONFIG = {
 
 // App configuration
 export const APP_CONFIG = {
-  NAME: process.env.NEXT_PUBLIC_APP_NAME || 'SOLI Enterprise Portal',
+  NAME: process.env.NEXT_PUBLIC_APP_NAME || 'SOLI Portal',
   VERSION: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   DEFAULT_PAGE_SIZE: 10,
   MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB

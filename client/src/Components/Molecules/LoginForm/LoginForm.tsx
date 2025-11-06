@@ -3,7 +3,7 @@
 import React from 'react';
 import { Form, Input, Checkbox } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button } from '@/components/Atoms';
+import { Button } from '@/Components/Atoms';
 import type { LoginCredentials } from '@/Interfaces';
 
 interface LoginFormProps {

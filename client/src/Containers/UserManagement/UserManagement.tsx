@@ -9,7 +9,7 @@ import { useUserStore } from '@/State';
 import type { User, CreateUserDto, UserRole, UserStatus } from '@/Interfaces';
 import { formatDate } from '@/Helpers';
 
-export const UserManagementContainer: React.FC = () => {
+export const UserManagement: React.FC = () => {
   const { users, setUsers, addUser, updateUser, removeUser } = useUserStore();
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -124,7 +124,7 @@ export const UserManagementContainer: React.FC = () => {
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date: string) => formatDate(date),
-      sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      sorter: (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime(),
     },
     {
       title: 'Actions',
@@ -259,4 +259,4 @@ export const UserManagementContainer: React.FC = () => {
   );
 };
 
-export default UserManagementContainer;
+export default UserManagement;

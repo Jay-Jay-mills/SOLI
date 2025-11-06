@@ -1,13 +1,15 @@
 // Application routes
 export const ROUTES = {
   HOME: '/',
-  LOGIN: '/login',
+  LOGIN: '/', // Login is now at root path
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   
   // User routes
   DASHBOARD: '/dashboard',
+  PROJECTS: '/projects',
+  PROJECT_DETAIL: (id: string) => `/projects/${id}`,
   FILE_UPLOAD: '/file-upload',
   PROFILE: '/profile',
   
