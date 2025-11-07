@@ -11,24 +11,27 @@ import type { UserRole } from '@/Interfaces';
  */
 export const useProtectedRoute = (requiredRole?: UserRole) => {
   const router = useRouter();
-  const { isAuthenticated, user, isLoading } = useAuth();
+  const { isAuthenticated, user, isLoading, isHydrated } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
-      // Not authenticated
-      if (!isAuthenticated) {
-        router.push(ROUTES.HOME); // Redirect to home (login page)
-        return;
-      }
-
-      // Check role requirement
-      if (requiredRole && user?.role !== requiredRole) {
-        router.push(ROUTES.UNAUTHORIZED);
-      }
+    // Wait for store hydration to complete
+    if (!isHydrated || isLoading) {
+      return;
     }
-  }, [isAuthenticated, user, isLoading, requiredRole, router]);
 
-  return { isLoading, isAuthenticated, user };
+    // Not authenticated
+    if (!isAuthenticated) {
+      router.push(ROUTES.HOME); // Redirect to home (login page)
+      return;
+    }
+
+    // Check role requirement
+    if (requiredRole && user?.role !== requiredRole) {
+      router.push(ROUTES.UNAUTHORIZED);
+    }
+  }, [isAuthenticated, user, isLoading, isHydrated, requiredRole, router]);
+
+  return { isLoading: isLoading || !isHydrated, isAuthenticated, user };
 };
 
 export default useProtectedRoute;

@@ -8,17 +8,18 @@ import { LoginContainer } from '@/Containers';
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isHydrated } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
+    // Wait for store hydration before redirecting
+    if (isHydrated && !isLoading && isAuthenticated) {
       // Redirect to dashboard if already authenticated
       router.push(ROUTES.DASHBOARD);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, isHydrated, router]);
 
-  // Show login page if not authenticated
-  if (isLoading) {
+  // Show loading while hydrating or loading
+  if (!isHydrated || isLoading) {
     return null; // Or a loading spinner
   }
 

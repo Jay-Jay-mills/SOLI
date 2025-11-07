@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Layout, Avatar, Dropdown, Space } from 'antd';
+import { Layout, Avatar, Dropdown, Space, Skeleton } from 'antd';
 import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '@/Hooks';
@@ -10,7 +10,7 @@ import { getInitials } from '@/Helpers';
 const { Header: AntHeader } = Layout;
 
 export const Header: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isHydrated } = useAuth();
 
   const menuItems: MenuProps['items'] = [
     {
@@ -34,6 +34,10 @@ export const Header: React.FC = () => {
       onClick: logout,
     },
   ];
+
+  // Get user display info only after hydration
+  const userDisplayName = isHydrated ? (user?.firstName || 'User') : '';
+  const userInitials = isHydrated ? getInitials(user?.firstName + ' ' + user?.lastName || 'User') : '?';
 
   return (
     <AntHeader 
@@ -74,31 +78,38 @@ export const Header: React.FC = () => {
           }}>SOLI</span>
         </h1>
         
-        <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow>
-          <Space style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <span style={{ 
-              fontWeight: 500, 
-              color: '#000000ff', 
-              marginRight: '12px',
-              fontSize: '15px'
-            }}>
-              {user?.firstName || 'User'}
-            </span>
-            <Avatar size={40} style={{ 
-              backgroundColor: '#667eea', 
-              border: '2px solid #764ba2',
-              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)',
-              fontWeight: 600,
-              fontSize: '16px'
-            }}>
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.username} />
-              ) : (
-                getInitials(user?.firstName + ' ' + user?.lastName || 'User')
-              )}
-            </Avatar>
+        {!isHydrated ? (
+          <Space style={{ display: 'flex', alignItems: 'center' }}>
+            <Skeleton.Button active size="small" style={{ width: 80, height: 24 }} />
+            <Skeleton.Avatar active size={40} shape="circle" />
           </Space>
-        </Dropdown>
+        ) : (
+          <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow>
+            <Space style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <span style={{ 
+                fontWeight: 500, 
+                color: '#000000ff', 
+                marginRight: '12px',
+                fontSize: '15px'
+              }}>
+                {userDisplayName}
+              </span>
+              <Avatar size={40} style={{ 
+                backgroundColor: '#667eea', 
+                border: '2px solid #764ba2',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)',
+                fontWeight: 600,
+                fontSize: '16px'
+              }}>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.username} />
+                ) : (
+                  userInitials
+                )}
+              </Avatar>
+            </Space>
+          </Dropdown>
+        )}
       </div>
     </AntHeader>
   );
