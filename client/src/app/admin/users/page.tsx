@@ -1,7 +1,7 @@
 'use client';
 
 import { MainLayout } from '@/Layouts';
-import { UserManagementContainer } from '@/Containers';
+import { UserManagement } from '@/Containers';
 import { useProtectedRoute } from '@/Hooks';
 import { UserRole } from '@/Interfaces';
 
@@ -10,7 +10,7 @@ export default function AdminUsersPage() {
 
   return (
     <MainLayout>
-      <UserManagementContainer />
+      <UserManagement />
     </MainLayout>
   );
 }
