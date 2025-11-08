@@ -14,9 +14,20 @@ export const userService = {
     pageSize?: number;
     search?: string;
   }): Promise<PaginatedResponse<User>> {
-    const response = await apiService.get<PaginatedResponse<User>>(API_ENDPOINTS.USERS, {
+    const response = await apiService.get<any>(API_ENDPOINTS.USERS, {
       params,
     });
+    // Backend returns { success, data: { users, pagination } }
+    if (response.data?.success && response.data?.data) {
+      const paginationData = response.data.data.pagination || {};
+      return {
+        data: response.data.data.users || [],
+        total: paginationData.total || 0,
+        page: paginationData.page || 1,
+        pageSize: paginationData.limit || 10,
+        totalPages: paginationData.pages || 1,
+      };
+    }
     return response.data;
   },
 
@@ -40,7 +51,11 @@ export const userService = {
    * Create new user
    */
   async createUser(data: CreateUserDto): Promise<User> {
-    const response = await apiService.post<User>(API_ENDPOINTS.USERS, data);
+    const response = await apiService.post<any>(API_ENDPOINTS.USERS, data);
+    // Backend returns { success, message, data: User }
+    if (response.data?.success && response.data?.data) {
+      return response.data.data;
+    }
     return response.data;
   },
 
@@ -48,7 +63,11 @@ export const userService = {
    * Update user
    */
   async updateUser(id: string, data: UpdateUserDto): Promise<User> {
-    const response = await apiService.put<User>(API_ENDPOINTS.UPDATE_USER(id), data);
+    const response = await apiService.put<any>(API_ENDPOINTS.UPDATE_USER(id), data);
+    // Backend returns { success, message, data: User }
+    if (response.data?.success && response.data?.data) {
+      return response.data.data;
+    }
     return response.data;
   },
 

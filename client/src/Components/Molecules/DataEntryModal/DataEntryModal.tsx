@@ -16,7 +16,8 @@ import {
   message,
 } from 'antd';
 import { UploadOutlined, InboxOutlined } from '@ant-design/icons';
-import type { FormField, FormSubmission } from '@/Interfaces';
+import type { FormField, FormSubmission, Customer } from '@/Interfaces';
+import { customerService } from '@/Services';
 import dayjs from 'dayjs';
 
 const { TextArea } = Input;
@@ -42,12 +43,41 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<any>({});
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [fieldsWithCustomers, setFieldsWithCustomers] = useState<FormField[]>(formFields);
+
+  // Load customers when modal opens if there's a customer field
+  useEffect(() => {
+    if (open) {
+      const hasCustomerField = formFields.some(field => field.name === 'customer');
+      if (hasCustomerField) {
+        customerService.getActiveCustomers()
+          .then((customerData) => {
+            setCustomers(customerData);
+            // Update form fields with customer options
+            const updatedFields = formFields.map(field => {
+              if (field.name === 'customer') {
+                return {
+                  ...field,
+                  options: customerData.map(c => c.name)
+                };
+              }
+              return field;
+            });
+            setFieldsWithCustomers(updatedFields);
+          })
+          .catch(() => message.error('Failed to load customers'));
+      } else {
+        setFieldsWithCustomers(formFields);
+      }
+    }
+  }, [open, formFields]);
 
   useEffect(() => {
     if (editingData && open) {
       // Populate form with editing data
       const formValues: Record<string, any> = {};
-      formFields.forEach((field) => {
+      fieldsWithCustomers.forEach((field) => {
         let value = editingData.data[field.name];
         
         // Convert date strings to dayjs objects
@@ -73,14 +103,14 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
       form.resetFields();
       setFileList({});
     }
-  }, [editingData, open, form, formFields]);
+  }, [editingData, open, form, fieldsWithCustomers]);
 
   const handleSubmit = () => {
     form.validateFields().then((values) => {
       const submissionData: Record<string, any> = {};
       const filesToUpload: Record<string, File[]> = {};
       
-      formFields.forEach((field) => {
+      fieldsWithCustomers.forEach((field) => {
         let value = values[field.name];
         
         // Convert dayjs objects to ISO strings for dates
@@ -247,6 +277,11 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
             <Select
               placeholder={field.placeholder || `Select ${field.label}`}
               size="large"
+              showSearch
+              filterOption={(input, option) => {
+                const label = String(option?.children || '');
+                return label.toLowerCase().includes(input.toLowerCase());
+              }}
             >
               {field.options?.map((option) => (
                 <Option key={option} value={option}>
@@ -317,7 +352,7 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
         layout="vertical"
         style={{ marginTop: '24px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '12px' }}
       >
-        {formFields
+        {fieldsWithCustomers
           .sort((a, b) => a.order - b.order)
           .map((field) => renderField(field))}
       </Form>

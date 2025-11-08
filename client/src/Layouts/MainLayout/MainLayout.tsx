@@ -9,12 +9,13 @@ const { Content } = Layout;
 
 interface MainLayoutProps {
   children: ReactNode;
+  showSidebar?: boolean;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ children, showSidebar = true }) => {
   return (
     <Layout className="min-h-screen">
-      <Sidebar />
+      {showSidebar && <Sidebar />}
       <Layout>
         <Header />
         <Content className="m-6 min-h-[calc(100vh-88px)]">

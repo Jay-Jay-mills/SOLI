@@ -6,3 +6,4 @@ export * from './file.service';
 export * from './signalr.service';
 export * from './form.service';
 export * from './project.service';
+export * from './customer.service';

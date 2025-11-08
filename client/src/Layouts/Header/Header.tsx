@@ -6,26 +6,33 @@ import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons
 import type { MenuProps } from 'antd';
 import { useAuth } from '@/Hooks';
 import { getInitials } from '@/Helpers';
+import { useRouter } from 'next/navigation';
 
 const { Header: AntHeader } = Layout;
 
 export const Header: React.FC = () => {
   const { user, logout, isHydrated } = useAuth();
+  const router = useRouter();
+
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (key === 'settings') {
+      router.push('/settings');
+    }
+  };
+
+  // Check if user is admin
+  const isAdmin = user?.isAdmin || false;
 
   const menuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Profile',
-    },
-    {
+    // Only show settings for admins
+    ...(isAdmin ? [{
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
     },
     {
-      type: 'divider',
-    },
+      type: 'divider' as const,
+    }] : []),
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -84,7 +91,7 @@ export const Header: React.FC = () => {
             <Skeleton.Avatar active size={40} shape="circle" />
           </Space>
         ) : (
-          <Dropdown menu={{ items: menuItems }} placement="bottomRight" arrow>
+          <Dropdown menu={{ items: menuItems, onClick: handleMenuClick }} placement="bottomRight" arrow>
             <Space style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
               <span style={{ 
                 fontWeight: 500, 

@@ -23,11 +23,7 @@ export const getUsers = async (req, res, next) => {
         users: users.map(user => ({
           id: user._id,
           username: user.username,
-          email: user.username + '@example.com',
-          firstName: user.username,
-          lastName: 'User',
-          role: user.isAdmin ? 'admin' : 'user',
-          status: user.isActive ? 'active' : 'inactive',
+          isAdmin: user.isAdmin,
           isSOLI: user.isSOLI,
           isActive: user.isActive,
           created: user.created,
@@ -67,11 +63,7 @@ export const getUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        email: user.username + '@example.com',
-        firstName: user.username,
-        lastName: 'User',
-        role: user.isAdmin ? 'admin' : 'user',
-        status: user.isActive ? 'active' : 'inactive',
+        isAdmin: user.isAdmin,
         isSOLI: user.isSOLI,
         isActive: user.isActive,
         created: user.created,
@@ -90,7 +82,7 @@ export const getUser = async (req, res, next) => {
 // @access  Private/Admin
 export const createUser = async (req, res, next) => {
   try {
-    const { username, password, isAdmin, isSOLI, isActive } = req.body;
+    const { username, password, isAdmin } = req.body;
 
     // Validate input
     if (!username || !password) {
@@ -114,12 +106,13 @@ export const createUser = async (req, res, next) => {
       username,
       password,
       isAdmin: isAdmin || false,
-      isSOLI: isSOLI || false,
-      isActive: typeof isActive !== 'undefined' ? isActive : true,
+      isSOLI: req.user?.isSOLI || false, // Inherit from creator
+      isActive: true, // Always active on creation
+      // System fields - auto-populated
       created: new Date(),
-      createdBy: req.user.username,
-      updated: new Date(),
-      updatedBy: req.user.username
+      createdBy: req.user?.username || 'system',
+      updated: null,
+      updatedBy: null
     });
 
     res.status(201).json({
@@ -128,11 +121,7 @@ export const createUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        email: user.username + '@example.com',
-        firstName: user.username,
-        lastName: 'User',
-        role: user.isAdmin ? 'admin' : 'user',
-        status: user.isActive ? 'active' : 'inactive',
+        isAdmin: user.isAdmin,
         isSOLI: user.isSOLI,
         isActive: user.isActive,
         created: user.created,
@@ -168,8 +157,10 @@ export const updateUser = async (req, res, next) => {
     if (typeof isAdmin !== 'undefined') user.isAdmin = isAdmin;
     if (typeof isSOLI !== 'undefined') user.isSOLI = isSOLI;
     if (typeof isActive !== 'undefined') user.isActive = isActive;
+    
+    // Update system fields - preserve created/createdBy, update updated/updatedBy
     user.updated = new Date();
-    user.updatedBy = req.user.username;
+    user.updatedBy = req.user?.username || 'system';
 
     await user.save();
 
@@ -179,11 +170,7 @@ export const updateUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        email: user.username + '@example.com',
-        firstName: user.username,
-        lastName: 'User',
-        role: user.isAdmin ? 'admin' : 'user',
-        status: user.isActive ? 'active' : 'inactive',
+        isAdmin: user.isAdmin,
         isSOLI: user.isSOLI,
         isActive: user.isActive,
         created: user.created,

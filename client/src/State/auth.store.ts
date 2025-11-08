@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       accessToken: null,
       isAuthenticated: false,
-      isLoading: true,
+      isLoading: false,
       isHydrated: false,
 
       setUser: (user) => {
@@ -73,11 +73,13 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
-      },
     }
   )
 );
+
+// Ensure hydration happens on client side
+if (typeof window !== 'undefined') {
+  useAuthStore.setState({ isHydrated: true, isLoading: false });
+}
 
 export default useAuthStore;

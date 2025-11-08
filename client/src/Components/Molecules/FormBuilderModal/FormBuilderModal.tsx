@@ -26,7 +26,9 @@ import {
   DragOutlined,
   CheckCircleOutlined,
 } from '@ant-design/icons';
-import type { FormField, FieldType } from '@/Interfaces';
+import { useAuth } from '@/Hooks';
+import { customerService } from '@/Services';
+import type { FormField, FieldType, Customer } from '@/Interfaces';
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -41,8 +43,8 @@ interface FormBuilderModalProps {
   existingForm?: { name: string; description?: string; fields: FormField[] } | null;
 }
 
-// Default form fields that cannot be deleted
-const DEFAULT_FIELDS: Omit<FormField, 'id'>[] = [
+// Default form fields for NON-SOLI users (isSOLI: false)
+const NON_SOLI_DEFAULT_FIELDS: Omit<FormField, 'id'>[] = [
   {
     name: 'supplier',
     label: 'Supplier',
@@ -88,6 +90,39 @@ const DEFAULT_FIELDS: Omit<FormField, 'id'>[] = [
   },
 ];
 
+// Default form fields for SOLI users (isSOLI: true)
+// Note: System fields (isDeleted, created, createdBy, updated, updatedBy) 
+// are automatically handled by the backend and don't need to be in the form
+const SOLI_DEFAULT_FIELDS: Omit<FormField, 'id'>[] = [
+  {
+    name: 'customer',
+    label: 'Customer',
+    type: 'select',
+    required: true,
+    placeholder: 'Select customer',
+    options: [],
+    order: 0,
+    isDefault: true,
+  },
+  {
+    name: 'forecastNo',
+    label: 'Forecast No',
+    type: 'number',
+    required: true,
+    placeholder: 'Enter forecast number',
+    order: 1,
+    isDefault: true,
+  },
+  {
+    name: 'file',
+    label: 'File',
+    type: 'file',
+    required: true,
+    order: 2,
+    isDefault: true,
+  },
+];
+
 export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   open,
   onCancel,
@@ -96,6 +131,58 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   projectName,
   existingForm,
 }) => {
+  const { user } = useAuth();
+  const userIsSOLI = user?.isSOLI || false;
+  
+  // Fetch customers for SOLI users
+  const [customers, setCustomers] = React.useState<Customer[]>([]);
+  
+  React.useEffect(() => {
+    if (userIsSOLI && open) {
+      // Load customers when modal opens for SOLI users
+      customerService.getActiveCustomers()
+        .then(setCustomers)
+        .catch(() => message.error('Failed to load customers'));
+    }
+  }, [userIsSOLI, open]);
+  
+  // Create customer options for the customer field (just the names as strings)
+  const customerOptions = customers.map(customer => customer.name);
+  
+  // Update SOLI default fields with customer options
+  const SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS: Omit<FormField, 'id'>[] = [
+    {
+      name: 'customer',
+      label: 'Customer',
+      type: 'select',
+      required: true,
+      placeholder: 'Select customer',
+      options: customerOptions,
+      order: 0,
+      isDefault: true,
+    },
+    {
+      name: 'forecastNo',
+      label: 'Forecast No',
+      type: 'number',
+      required: true,
+      placeholder: 'Enter forecast number',
+      order: 1,
+      isDefault: true,
+    },
+    {
+      name: 'file',
+      label: 'File',
+      type: 'file',
+      required: true,
+      order: 2,
+      isDefault: true,
+    },
+  ];
+  
+  // Select default fields based on user SOLI status
+  const DEFAULT_FIELDS = userIsSOLI ? SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS : NON_SOLI_DEFAULT_FIELDS;
+  
   const [form] = Form.useForm();
   const [fields, setFields] = useState<FormField[]>(
     DEFAULT_FIELDS.map((field, index) => ({ ...field, id: `default-${index}` }))
@@ -115,11 +202,11 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
       });
       setFields(existingForm.fields);
     } else if (open && !existingForm) {
-      // Reset to default fields for new form
+      // Reset to default fields for new form based on user SOLI status
       form.resetFields();
       setFields(DEFAULT_FIELDS.map((field, index) => ({ ...field, id: `default-${index}` })));
     }
-  }, [open, existingForm, form]);
+  }, [open, existingForm, form, DEFAULT_FIELDS]);
 
   const fieldTypes: { value: FieldType; label: string }[] = [
     { value: 'text', label: 'Text' },

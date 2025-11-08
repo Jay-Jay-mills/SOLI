@@ -189,6 +189,7 @@ export const submitFormData = async (req, res, next) => {
   try {
     const { id: formId } = req.params;
     const userId = req.user?.username || 'system';
+    const userIsSOLI = req.user?.isSOLI || false;
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(formId)) {
@@ -225,6 +226,15 @@ export const submitFormData = async (req, res, next) => {
         success: false,
         message: 'Invalid data format'
       });
+    }
+
+    // Auto-populate system fields for SOLI users
+    if (userIsSOLI) {
+      data.isDeleted = data.isDeleted || 'false';
+      data.created = new Date().toISOString();
+      data.createdBy = userId;
+      data.updated = null;
+      data.updatedBy = null;
     }
 
     // Handle uploaded files
@@ -369,6 +379,8 @@ export const getSubmission = async (req, res, next) => {
 export const updateSubmission = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const userId = req.user?.username || 'system';
+    const userIsSOLI = req.user?.isSOLI || false;
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -396,6 +408,18 @@ export const updateSubmission = async (req, res, next) => {
         success: false,
         message: 'Invalid data format'
       });
+    }
+
+    // Auto-update system fields for SOLI users
+    if (userIsSOLI) {
+      // Preserve original created and createdBy
+      data.created = submission.data.created;
+      data.createdBy = submission.data.createdBy;
+      // Update the updated fields
+      data.updated = new Date().toISOString();
+      data.updatedBy = userId;
+      // Preserve or update isDeleted
+      data.isDeleted = data.isDeleted || submission.data.isDeleted || 'false';
     }
 
     // Handle uploaded files
