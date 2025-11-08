@@ -1,12 +1,13 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Empty, Spin, Popconfirm, message, Card, Row, Col, Statistic, Input, Select, Space } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, ProjectOutlined, CheckCircleOutlined, ClockCircleOutlined, SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { ProjectCard, ProjectModal } from '@/Components/Molecules';
 import { useAuth } from '@/Hooks';
-import type { Project, CreateProjectDto } from '@/Interfaces';
+import { projectService } from '@/Services';
+import type { Project, CreateProjectDto, UpdateProjectDto } from '@/Interfaces';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -14,35 +15,7 @@ const { Option } = Select;
 export const Dashboard: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      name: 'Project Alpha',
-      description: 'Initial project setup and configuration for the new enterprise system.',
-      createdBy: 'Admin User',
-      created: '2024-01-15T10:00:00Z',
-      updated: '2024-01-15T10:00:00Z',
-      status: 'active',
-    },
-    {
-      id: '2',
-      name: 'Project Beta',
-      description: 'Development of the core API services and database schema.',
-      createdBy: 'Admin User',
-      created: '2024-01-20T14:30:00Z',
-      updated: '2024-01-20T14:30:00Z',
-      status: 'active',
-    },
-    {
-      id: '3',
-      name: 'Project Gamma',
-      description: 'UI/UX design and frontend implementation for the dashboard.',
-      createdBy: 'Admin User',
-      created: '2024-02-01T09:15:00Z',
-      updated: '2024-02-01T09:15:00Z',
-      status: 'completed',
-    },
-  ]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -54,6 +27,24 @@ export const Dashboard: React.FC = () => {
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const completedProjects = projects.filter(p => p.status === 'completed').length;
+
+  // Load projects on mount
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    setLoading(true);
+    try {
+      const data = await projectService.getProjects();
+      setProjects(data);
+    } catch (error: any) {
+      console.error('Error loading projects:', error);
+      message.error(error.response?.data?.message || 'Failed to load projects');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) || project.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -82,6 +73,7 @@ export const Dashboard: React.FC = () => {
     e.stopPropagation();
     try {
       setLoading(true);
+      await projectService.deleteProject(projectId);
       setProjects(projects.filter((p) => p.id !== projectId));
       message.success('Project deleted successfully');
     } catch (error: any) {
@@ -91,16 +83,23 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleSubmitProject = async (data: CreateProjectDto) => {
-    if (modalMode === 'create') {
-      const newProject: Project = { id: String(projects.length + 1), name: data.name, description: data.description, createdBy: user?.username || 'Unknown', created: new Date().toISOString(), updated: new Date().toISOString(), status: 'active' };
-      setProjects([...projects, newProject]);
-      message.success('Project created successfully');
-    } else if (selectedProject) {
-      setProjects(projects.map((p) => p.id === selectedProject.id ? { ...p, ...data, updated: new Date().toISOString() } : p));
-      message.success('Project updated successfully');
+  const handleSubmitProject = async (data: CreateProjectDto | UpdateProjectDto) => {
+    try {
+      if (modalMode === 'create') {
+        const newProject = await projectService.createProject(data as CreateProjectDto);
+        setProjects([newProject, ...projects]);
+        message.success('Project created successfully');
+      } else if (selectedProject) {
+        const updatedProject = await projectService.updateProject(selectedProject.id, data as UpdateProjectDto);
+        setProjects(projects.map((p) => p.id === selectedProject.id ? updatedProject : p));
+        message.success('Project updated successfully');
+      }
+      setModalOpen(false);
+      setSelectedProject(null);
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || `Failed to ${modalMode} project`);
+      throw error; // Re-throw to let modal handle loading state
     }
-    setModalOpen(false);
   };
 
   return (

@@ -8,7 +8,7 @@ import { useProtectedRoute } from '@/Hooks';
 
 const { Content } = Layout;
 
-export default function ProjectDetailPage({ params }: { params: { projectId: string } }) {
+export default function ProjectDetailPage({ params }: { params: { _id: string } }) {
   const { isLoading } = useProtectedRoute();
 
   if (isLoading) {
@@ -24,7 +24,7 @@ export default function ProjectDetailPage({ params }: { params: { projectId: str
         margin: '0 auto',
         width: '100%'
       }}>
-        <ProjectDetail projectId={params.projectId} />
+        <ProjectDetail projectId={params._id} />
       </Content>
     </Layout>
   );

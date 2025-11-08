@@ -13,6 +13,7 @@ import {
   deleteSubmission
 } from '../controllers/formController.js';
 import { protect } from '../middlewares/auth.js';
+import upload from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -27,11 +28,11 @@ router.put('/:id', updateForm);
 router.delete('/:id', deleteForm);
 
 // Submission routes
-router.post('/:id/submissions', submitFormData);
+router.post('/:id/submissions', upload.any(), submitFormData);
 router.get('/:id/submissions', getFormSubmissions);
 router.get('/project/:projectId/submissions', getSubmissionsByProjectId);
 router.get('/submissions/:id', getSubmission);
-router.put('/submissions/:id', updateSubmission);
+router.put('/submissions/:id', upload.any(), updateSubmission);
 router.delete('/submissions/:id', deleteSubmission);
 
 export default router;

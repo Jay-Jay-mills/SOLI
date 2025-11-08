@@ -103,13 +103,15 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   const [editingField, setEditingField] = useState<FormField | null>(null);
   const [isAddFieldModalOpen, setIsAddFieldModalOpen] = useState(false);
   const [fieldForm] = Form.useForm();
+  const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null);
+  const [dragOverFieldId, setDragOverFieldId] = useState<string | null>(null);
 
   // Load existing form data when modal opens
   React.useEffect(() => {
     if (open && existingForm) {
       form.setFieldsValue({
-        name: existingForm.name,
-        description: existingForm.description,
+        formName: existingForm.name,
+        formDescription: existingForm.description,
       });
       setFields(existingForm.fields);
     } else if (open && !existingForm) {
@@ -147,6 +149,63 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   const handleDeleteField = (fieldId: string) => {
     setFields(fields.filter((f) => f.id !== fieldId));
     message.success('Field deleted successfully');
+  };
+
+  const handleDragStart = (e: React.DragEvent, fieldId: string) => {
+    e.stopPropagation();
+    setDraggedFieldId(fieldId);
+  };
+
+  const handleDragOver = (e: React.DragEvent, fieldId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverFieldId(fieldId);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setDragOverFieldId(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetFieldId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!draggedFieldId || draggedFieldId === targetFieldId) {
+      setDraggedFieldId(null);
+      setDragOverFieldId(null);
+      return;
+    }
+
+    const draggedIndex = fields.findIndex((f) => f.id === draggedFieldId);
+    const targetIndex = fields.findIndex((f) => f.id === targetFieldId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedFieldId(null);
+      setDragOverFieldId(null);
+      return;
+    }
+
+    const newFields = [...fields];
+    const [draggedField] = newFields.splice(draggedIndex, 1);
+    newFields.splice(targetIndex, 0, draggedField);
+
+    // Update order property
+    const reorderedFields = newFields.map((field, index) => ({
+      ...field,
+      order: index,
+    }));
+
+    setFields(reorderedFields);
+    setDraggedFieldId(null);
+    setDragOverFieldId(null);
+    message.success('Field order updated');
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.stopPropagation();
+    setDraggedFieldId(null);
+    setDragOverFieldId(null);
   };
 
   const handleFieldFormSubmit = () => {
@@ -211,10 +270,10 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
         title={
           <div>
             <Title level={4} style={{ margin: 0 }}>
-              Create Form for {projectName}
+              {existingForm ? 'Edit Form' : `Create Form for ${projectName}`}
             </Title>
             <Text type="secondary">
-              Define fields for data entry in this project
+              {existingForm ? 'Update form fields and configuration' : 'Define fields for data entry in this project'}
             </Text>
           </div>
         }
@@ -226,7 +285,7 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleSubmit}>
-            Create Form
+            {existingForm ? 'Update Form' : 'Create Form'}
           </Button>,
         ]}
       >
@@ -253,10 +312,16 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
 
           <Divider />
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <Title level={5} style={{ margin: 0 }}>
-              Form Fields ({fields.length})
-            </Title>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div>
+              <Title level={5} style={{ margin: 0 }}>
+                Form Fields ({fields.length})
+              </Title>
+              <Text type="secondary" style={{ fontSize: '12px' }}>
+                <DragOutlined style={{ marginRight: '4px' }} />
+                Drag and drop to reorder fields
+              </Text>
+            </div>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -271,11 +336,22 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
             renderItem={(field) => (
               <Card
                 key={field.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, field.id)}
+                onDragOver={(e) => handleDragOver(e, field.id)}
+                onDragLeave={(e) => handleDragLeave(e)}
+                onDrop={(e) => handleDrop(e, field.id)}
+                onDragEnd={(e) => handleDragEnd(e)}
                 style={{
                   marginBottom: '12px',
                   borderLeft: field.isDefault
                     ? '4px solid #1890ff'
                     : '4px solid #52c41a',
+                  cursor: 'move',
+                  opacity: draggedFieldId === field.id ? 0.5 : 1,
+                  backgroundColor: dragOverFieldId === field.id && draggedFieldId !== field.id ? '#f0f5ff' : 'white',
+                  transition: 'all 0.2s',
+                  transform: dragOverFieldId === field.id && draggedFieldId !== field.id ? 'scale(1.02)' : 'scale(1)',
                 }}
                 bodyStyle={{ padding: '16px' }}
               >
@@ -283,7 +359,7 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
                   <Col flex="auto">
                     <Space direction="vertical" size={4} style={{ width: '100%' }}>
                       <Space>
-                        <DragOutlined style={{ color: '#bfbfbf', cursor: 'move' }} />
+                        <DragOutlined style={{ color: '#1890ff', cursor: 'move', fontSize: '16px' }} />
                         <Text strong style={{ fontSize: '15px' }}>
                           {field.label}
                         </Text>

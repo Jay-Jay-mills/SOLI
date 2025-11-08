@@ -58,8 +58,31 @@ class FormService {
   /**
    * Submit form data
    */
-  async submitFormData(formId: string, data: Record<string, any>): Promise<FormSubmission> {
-    const response = await apiService.post<ApiResponse<FormSubmission>>(`${this.BASE_PATH}/${formId}/submissions`, { data });
+  async submitFormData(formId: string, data: Record<string, any>, files?: Record<string, File[]>): Promise<FormSubmission> {
+    const formData = new FormData();
+    
+    // Add regular data as JSON
+    formData.append('data', JSON.stringify(data));
+    
+    // Add files if present - append with field name
+    if (files) {
+      Object.keys(files).forEach(fieldName => {
+        files[fieldName].forEach(file => {
+          // Append using the field name so backend can group files correctly
+          formData.append(fieldName, file, file.name);
+        });
+      });
+    }
+    
+    const response = await apiService.post<ApiResponse<FormSubmission>>(
+      `${this.BASE_PATH}/${formId}/submissions`, 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data.data;
   }
 
@@ -90,8 +113,31 @@ class FormService {
   /**
    * Update submission
    */
-  async updateSubmission(submissionId: string, data: Record<string, any>): Promise<FormSubmission> {
-    const response = await apiService.put<ApiResponse<FormSubmission>>(`${this.BASE_PATH}/submissions/${submissionId}`, { data });
+  async updateSubmission(submissionId: string, data: Record<string, any>, files?: Record<string, File[]>): Promise<FormSubmission> {
+    const formData = new FormData();
+    
+    // Add regular data as JSON
+    formData.append('data', JSON.stringify(data));
+    
+    // Add files if present - append with field name
+    if (files) {
+      Object.keys(files).forEach(fieldName => {
+        files[fieldName].forEach(file => {
+          // Append using the field name so backend can group files correctly
+          formData.append(fieldName, file, file.name);
+        });
+      });
+    }
+    
+    const response = await apiService.put<ApiResponse<FormSubmission>>(
+      `${this.BASE_PATH}/submissions/${submissionId}`, 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data.data;
   }
 

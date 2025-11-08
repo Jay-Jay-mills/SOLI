@@ -26,7 +26,7 @@ const { Dragger } = Upload;
 interface DataEntryModalProps {
   open: boolean;
   onCancel: () => void;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, any>, files?: Record<string, File[]>) => void;
   formFields: FormField[];
   formName: string;
   editingData?: FormSubmission | null;
@@ -55,6 +55,16 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
           value = dayjs(value);
         }
         
+        // Handle checkbox - ensure it's an array
+        if (field.type === 'checkbox' && value && !Array.isArray(value)) {
+          value = typeof value === 'string' ? value.split(', ') : [value];
+        }
+        
+        // Skip file fields for now (they can't be pre-populated for security reasons)
+        if (field.type === 'file') {
+          value = undefined;
+        }
+        
         formValues[field.name] = value;
       });
       
@@ -68,6 +78,7 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
   const handleSubmit = () => {
     form.validateFields().then((values) => {
       const submissionData: Record<string, any> = {};
+      const filesToUpload: Record<string, File[]> = {};
       
       formFields.forEach((field) => {
         let value = values[field.name];
@@ -77,15 +88,19 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
           value = value.toISOString();
         }
         
-        // Handle file uploads
-        if (field.type === 'file' && fileList[field.name]) {
-          value = fileList[field.name].map((file: any) => file.name).join(', ');
+        // Handle file uploads - collect actual File objects
+        if (field.type === 'file' && fileList[field.name] && fileList[field.name].length > 0) {
+          filesToUpload[field.name] = fileList[field.name].map((file: any) => file.originFileObj || file);
+          // Don't include file data in regular submission data
+          value = undefined;
         }
         
-        submissionData[field.name] = value;
+        if (value !== undefined) {
+          submissionData[field.name] = value;
+        }
       });
       
-      onSubmit(submissionData);
+      onSubmit(submissionData, Object.keys(filesToUpload).length > 0 ? filesToUpload : undefined);
       form.resetFields();
       setFileList({});
     });
@@ -248,7 +263,6 @@ export const DataEntryModal: React.FC<DataEntryModalProps> = ({
             key={field.id}
             label={field.label}
             name={field.name}
-            valuePropName="checked"
           >
             <Checkbox.Group options={field.options} />
           </Form.Item>

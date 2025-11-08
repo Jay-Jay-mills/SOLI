@@ -1,5 +1,7 @@
 import Form from '../models/Form.js';
 import Submission from '../models/Submission.js';
+import Project from '../models/Project.js';
+import mongoose from 'mongoose';
 
 /**
  * Create a new form for a project
@@ -71,6 +73,14 @@ export const getFormById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form ID format'
+      });
+    }
+
     const form = await Form.findById(id);
 
     if (!form) {
@@ -97,6 +107,14 @@ export const updateForm = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, description, fields } = req.body;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form ID format'
+      });
+    }
 
     const form = await Form.findById(id);
 
@@ -133,6 +151,14 @@ export const deleteForm = async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form ID format'
+      });
+    }
+
     const form = await Form.findById(id);
 
     if (!form) {
@@ -162,8 +188,15 @@ export const deleteForm = async (req, res, next) => {
 export const submitFormData = async (req, res, next) => {
   try {
     const { id: formId } = req.params;
-    const { data } = req.body;
     const userId = req.user?.username || 'system';
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(formId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form ID format'
+      });
+    }
 
     // Validate form exists
     const form = await Form.findById(formId);
@@ -171,6 +204,61 @@ export const submitFormData = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Form not found'
+      });
+    }
+
+    // Get project for folder path
+    const project = await Project.findById(form.projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Parse data from request body
+    let data;
+    try {
+      data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid data format'
+      });
+    }
+
+    // Handle uploaded files
+    if (req.files && req.files.length > 0) {
+      console.log('📎 Processing uploaded files:', req.files.length);
+      
+      // Group files by field name
+      const filesByField = {};
+      req.files.forEach(file => {
+        console.log('📁 File uploaded:', {
+          fieldname: file.fieldname,
+          filename: file.filename,
+          originalname: file.originalname,
+          path: file.path
+        });
+        
+        // Use the fieldname directly (no need to remove array notation with upload.any())
+        const fieldName = file.fieldname;
+        if (!filesByField[fieldName]) {
+          filesByField[fieldName] = [];
+        }
+        filesByField[fieldName].push({
+          filename: file.filename,
+          originalName: file.originalname,
+          path: file.path,
+          size: file.size,
+          mimetype: file.mimetype
+        });
+      });
+
+      // Add file info to data
+      Object.keys(filesByField).forEach(fieldName => {
+        data[fieldName] = filesByField[fieldName];
+        console.log(`✅ Added files to field '${fieldName}':`, data[fieldName]);
       });
     }
 
@@ -199,6 +287,14 @@ export const submitFormData = async (req, res, next) => {
 export const getFormSubmissions = async (req, res, next) => {
   try {
     const { id: formId } = req.params;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(formId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid form ID format'
+      });
+    }
 
     const submissions = await Submission.find({ formId })
       .sort({ submitted: -1 });
@@ -240,6 +336,14 @@ export const getSubmission = async (req, res, next) => {
   try {
     const { id } = req.params;
 
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid submission ID format'
+      });
+    }
+
     const submission = await Submission.findById(id);
 
     if (!submission) {
@@ -265,7 +369,14 @@ export const getSubmission = async (req, res, next) => {
 export const updateSubmission = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data } = req.body;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid submission ID format'
+      });
+    }
 
     const submission = await Submission.findById(id);
 
@@ -273,6 +384,52 @@ export const updateSubmission = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Submission not found'
+      });
+    }
+
+    // Parse data from request body
+    let data;
+    try {
+      data = typeof req.body.data === 'string' ? JSON.parse(req.body.data) : req.body.data;
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid data format'
+      });
+    }
+
+    // Handle uploaded files
+    if (req.files && req.files.length > 0) {
+      console.log('📎 Processing uploaded files for update:', req.files.length);
+      
+      // Group files by field name
+      const filesByField = {};
+      req.files.forEach(file => {
+        console.log('📁 File uploaded:', {
+          fieldname: file.fieldname,
+          filename: file.filename,
+          originalname: file.originalname,
+          path: file.path
+        });
+        
+        // Use the fieldname directly
+        const fieldName = file.fieldname;
+        if (!filesByField[fieldName]) {
+          filesByField[fieldName] = [];
+        }
+        filesByField[fieldName].push({
+          filename: file.filename,
+          originalName: file.originalname,
+          path: file.path,
+          size: file.size,
+          mimetype: file.mimetype
+        });
+      });
+
+      // Add file info to data
+      Object.keys(filesByField).forEach(fieldName => {
+        data[fieldName] = filesByField[fieldName];
+        console.log(`✅ Updated files for field '${fieldName}':`, data[fieldName]);
       });
     }
 
@@ -297,6 +454,14 @@ export const updateSubmission = async (req, res, next) => {
 export const deleteSubmission = async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid submission ID format'
+      });
+    }
 
     const submission = await Submission.findByIdAndDelete(id);
 

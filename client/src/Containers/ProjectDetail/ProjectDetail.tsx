@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/Hooks';
 import { ROUTES } from '@/Constants';
 import { FormBuilderModal, DataEntryModal } from '@/Components/Molecules';
-import { formService } from '@/Services';
+import { formService, projectService } from '@/Services';
 import type { Project, ProjectForm, FormSubmission, CreateFormDto } from '@/Interfaces';
 
 const { Title, Text } = Typography;
@@ -37,26 +37,22 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
   const isAdmin = user?.role === 'admin' || user?.isAdmin;
 
   useEffect(() => {
-    // TODO: Replace with actual API call
-    // Mock data for now
-    const mockProject: Project = {
-      id: projectId,
-      name: `Project ${projectId === '1' ? 'Alpha' : projectId === '2' ? 'Beta' : 'Gamma'}`,
-      description: projectId === '1' 
-        ? 'Initial project setup and configuration for the new enterprise system.' 
-        : projectId === '2'
-        ? 'Development of the core API services and database schema.'
-        : 'UI/UX design and frontend implementation for the dashboard.',
-      createdBy: 'Admin User',
-      created: '2024-01-15T10:00:00Z',
-      updated: '2024-01-20T15:30:00Z',
-      status: projectId === '3' ? 'completed' : 'active',
-    };
-    setProject(mockProject);
-
-    // Load form and submissions from API
+    loadProject();
     loadFormAndSubmissions();
   }, [projectId]);
+
+  /**
+   * Load project from API
+   */
+  const loadProject = async () => {
+    try {
+      const projectData = await projectService.getProjectById(projectId);
+      setProject(projectData);
+    } catch (error: any) {
+      console.error('Error loading project:', error);
+      message.error(error.response?.data?.message || 'Failed to load project');
+    }
+  };
 
   /**
    * Load form and submissions from API
@@ -143,13 +139,13 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
     }
   };
 
-  const handleDataEntrySubmit = async (data: Record<string, any>) => {
+  const handleDataEntrySubmit = async (data: Record<string, any>, files?: Record<string, File[]>) => {
     if (!projectForm) return;
 
     try {
       if (editingSubmission) {
         // Update existing submission
-        const updated = await formService.updateSubmission(editingSubmission.id, data);
+        const updated = await formService.updateSubmission(editingSubmission.id, data, files);
         setSubmissions(
           submissions.map((s) =>
             s.id === updated.id ? updated : s
@@ -158,7 +154,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
         message.success('Entry updated successfully');
       } else {
         // Create new submission
-        const newSubmission = await formService.submitFormData(projectForm.id, data);
+        const newSubmission = await formService.submitFormData(projectForm.id, data, files);
         setSubmissions([...submissions, newSubmission]);
         message.success('Entry submitted successfully');
       }
@@ -182,6 +178,28 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
       render: (value: any) => {
         if (field.type === 'date' && value) {
           return new Date(value).toLocaleDateString();
+        }
+        if (field.type === 'file' && value) {
+          if (Array.isArray(value) && value.length > 0) {
+            return value.map((file: any, index: number) => {
+              // Extract relative path from full path (remove 'uploads/' prefix if present)
+              const relativePath = file.path ? file.path.replace(/^uploads[\\/]/, '') : file.filename;
+              const fileUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/uploads/${relativePath}`;
+              
+              return (
+                <a 
+                  key={index}
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ marginRight: '8px', display: 'block' }}
+                >
+                  📎 {file.originalName || file.filename}
+                </a>
+              );
+            });
+          }
+          return '-';
         }
         if (Array.isArray(value)) {
           return value.join(', ');
