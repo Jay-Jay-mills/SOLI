@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="fTitle">
+  <title id="fTitle">SOLI favicon</title>
+  <defs>
+    <linearGradient id="fg1" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0A84FF"/>
+      <stop offset="100%" stop-color="#667eea"/>
+    </linearGradient>
+    <linearGradient id="fg2" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#FFB703"/>
+    </linearGradient>
+  </defs>
+  <!-- ring -->
+  <circle cx="32" cy="32" r="30" fill="url(#fg1)" />
+  <!-- sun center -->
+  <circle cx="32" cy="32" r="14" fill="url(#fg2)" />
+  <!-- simple S cutout -->
+  <path d="M44 28c-4-5-11-6-16-4-5 2-7 7-7 11s2 9 7 11c5 2 12 1 16-4l-6-6c-2 3-6 4-9 3-3-1-4-4-4-7s1-6 4-7c3-1 7 0 9 3l6-6z" fill="#ffffff" opacity="0.96" transform="translate(-2,-1)"/>
+</svg>

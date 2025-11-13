@@ -7,6 +7,11 @@ package-lock.json
 .env.local
 .env.production
 
+# Testing
+coverage/
+*.test.js.snap
+.jest-cache/
+
 # Uploads
 uploads/
 *.log
