@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-labelledby="title desc">
+  <title id="title">SOLI logo</title>
+  <desc id="desc">Stylized S mark with a radiant circle and SOLI wordmark — modern, minimal, tech-forward.</desc>
+  <defs>
+    <linearGradient id="g1" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0A84FF"/>
+      <stop offset="100%" stop-color="#667eea"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD166"/>
+      <stop offset="100%" stop-color="#FFB703"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: ring + sun + stylized S -->
+  <g transform="translate(20,20)">
+    <!-- ring -->
+    <circle cx="40" cy="40" r="36" fill="url(#g1)" />
+    <!-- inner circle (sun) -->
+    <circle cx="40" cy="40" r="20" fill="url(#g2)" opacity="0.95" />
+    <!-- stylized S cut-out (white) -->
+    <path d="M58 32c-6-8-18-10-26-6-8 4-12 12-12 20s4 16 12 20c8 4 20 2 26-6l-8-8c-3 4-9 6-15 4-6-2-9-8-9-14s3-12 9-14c6-2 12 0 15 4l8-8z" fill="#ffffff" opacity="0.96" transform="translate(-10,-2)"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(120,78)">
+    <style>
+      .word{font-family: Inter, Arial, Helvetica, sans-serif; font-weight:700; font-size:46px; fill:#0F1724;}
+    </style>
+    <text class="word" x="0" y="0">SOLI</text>
+  </g>
+</svg>

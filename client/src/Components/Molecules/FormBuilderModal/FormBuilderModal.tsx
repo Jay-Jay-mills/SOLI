@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   Form,
@@ -147,10 +147,13 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   }, [userIsSOLI, open]);
   
   // Create customer options for the customer field (just the names as strings)
-  const customerOptions = customers.map(customer => customer.name);
+  const customerOptions = useMemo(() => 
+    customers.map(customer => customer.name),
+    [customers]
+  );
   
-  // Update SOLI default fields with customer options
-  const SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS: Omit<FormField, 'id'>[] = [
+  // Update SOLI default fields with customer options - memoized to prevent infinite loops
+  const SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS: Omit<FormField, 'id'>[] = useMemo(() => [
     {
       name: 'customer',
       label: 'Customer',
@@ -178,10 +181,13 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
       order: 2,
       isDefault: true,
     },
-  ];
+  ], [customerOptions]);
   
-  // Select default fields based on user SOLI status
-  const DEFAULT_FIELDS = userIsSOLI ? SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS : NON_SOLI_DEFAULT_FIELDS;
+  // Select default fields based on user SOLI status - memoized to prevent infinite loops
+  const DEFAULT_FIELDS = useMemo(() => 
+    userIsSOLI ? SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS : NON_SOLI_DEFAULT_FIELDS,
+    [userIsSOLI, SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS]
+  );
   
   const [form] = Form.useForm();
   const [fields, setFields] = useState<FormField[]>(
@@ -193,20 +199,24 @@ export const FormBuilderModal: React.FC<FormBuilderModalProps> = ({
   const [draggedFieldId, setDraggedFieldId] = useState<string | null>(null);
   const [dragOverFieldId, setDragOverFieldId] = useState<string | null>(null);
 
-  // Load existing form data when modal opens
+  // Initialize fields with default values - only when modal opens
   React.useEffect(() => {
-    if (open && existingForm) {
+    if (!open) return;
+
+    if (existingForm) {
       form.setFieldsValue({
         formName: existingForm.name,
         formDescription: existingForm.description,
       });
       setFields(existingForm.fields);
-    } else if (open && !existingForm) {
+    } else {
       // Reset to default fields for new form based on user SOLI status
       form.resetFields();
-      setFields(DEFAULT_FIELDS.map((field, index) => ({ ...field, id: `default-${index}` })));
+      const defaultFields = userIsSOLI ? SOLI_DEFAULT_FIELDS_WITH_CUSTOMERS : NON_SOLI_DEFAULT_FIELDS;
+      setFields(defaultFields.map((field, index) => ({ ...field, id: `default-${index}` })));
     }
-  }, [open, existingForm, form, DEFAULT_FIELDS]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, existingForm, userIsSOLI]);
 
   const fieldTypes: { value: FieldType; label: string }[] = [
     { value: 'text', label: 'Text' },

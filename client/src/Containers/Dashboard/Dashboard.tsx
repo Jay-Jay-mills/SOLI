@@ -255,7 +255,7 @@ export const Dashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1f1f1f', margin: 0, letterSpacing: '-0.3px' }}>
-              Projects
+              Sales Order Projects
             </h2>
             <p style={{ fontSize: '14px', color: '#8c8c8c', margin: '6px 0 0 0' }}>
               Manage and view all your projects in one place

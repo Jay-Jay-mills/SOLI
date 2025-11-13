@@ -1,0 +1,23 @@
+export default {
+  testEnvironment: 'node',
+  transform: {},
+  testMatch: ['**/__tests__/**/*.test.js', '**/?(*.)+(spec|test).js'],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  collectCoverageFrom: [
+    'controllers/**/*.js',
+    'models/**/*.js',
+    'routes/**/*.js',
+    'services/**/*.js',
+    'middlewares/**/*.js',
+    'utils/**/*.js',
+    '!utils/resetTestDB.js',
+    '!**/node_modules/**',
+  ],
+  coverageDirectory: 'coverage',
+  verbose: true,
+  forceExit: true,
+  clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
+  testTimeout: 10000,
+};
