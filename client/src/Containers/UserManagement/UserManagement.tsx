@@ -104,19 +104,32 @@ export const UserManagement: React.FC = () => {
       sorter: (a, b) => a.username.localeCompare(b.username),
     },
     {
-      title: 'User Type',
-      dataIndex: 'isAdmin',
-      key: 'isAdmin',
-      render: (isAdmin: boolean) => (
-        <Tag color={isAdmin ? 'red' : 'blue'}>
-          {isAdmin ? 'ADMIN' : 'USER'}
-        </Tag>
-      ),
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (role: string) => {
+        const roleColors: Record<string, string> = {
+          superadmin: 'purple',
+          admin: 'red',
+          user: 'blue'
+        };
+        const roleLabels: Record<string, string> = {
+          superadmin: 'SUPER ADMIN',
+          admin: 'ADMIN',
+          user: 'USER'
+        };
+        return (
+          <Tag color={roleColors[role] || 'blue'}>
+            {roleLabels[role] || (role ? role.toUpperCase() : 'UNKNOWN')}
+          </Tag>
+        );
+      },
       filters: [
-        { text: 'Admin', value: true },
-        { text: 'User', value: false },
+        { text: 'Super Admin', value: 'superadmin' },
+        { text: 'Admin', value: 'admin' },
+        { text: 'User', value: 'user' },
       ],
-      onFilter: (value, record) => record.isAdmin === value,
+      onFilter: (value, record) => record.role === value,
     },
     {
       title: 'Active Status',
@@ -215,11 +228,16 @@ export const UserManagement: React.FC = () => {
           )}
 
           <Form.Item
-            name="isAdmin"
-            label="User Type"
-            valuePropName="checked"
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: 'Please select a role!' }]}
+            initialValue="user"
           >
-            <Switch checkedChildren="Admin" unCheckedChildren="User" />
+            <Select>
+              <Select.Option value="superadmin">Super Admin</Select.Option>
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="user">User</Select.Option>
+            </Select>
           </Form.Item>
 
           {editingUser && (

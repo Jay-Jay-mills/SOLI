@@ -9,7 +9,7 @@ class ProjectService {
   private readonly BASE_PATH = '/projects';
 
   /**
-   * Get all projects (filtered by user's SOLI status)
+   * Get all projects
    */
   async getProjects(): Promise<Project[]> {
     const response = await apiService.get<ApiResponse<Project[]>>(`${this.BASE_PATH}`);

@@ -18,6 +18,7 @@ export interface User {
 }
 
 export enum UserRole {
+  SUPERADMIN = 'superadmin',
   ADMIN = 'admin',
   USER = 'user',
 }
@@ -31,6 +32,7 @@ export enum UserStatus {
 export interface CreateUserDto {
   username: string;
   password: string;
+  role?: UserRole | string;
   isAdmin?: boolean;
   isSOLI?: boolean;
   isActive?: boolean;
@@ -40,6 +42,7 @@ export interface CreateUserDto {
 export interface UpdateUserDto {
   username?: string;
   password?: string;
+  role?: UserRole | string;
   isAdmin?: boolean;
   isSOLI?: boolean;
   isActive?: boolean;

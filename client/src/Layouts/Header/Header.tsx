@@ -8,6 +8,7 @@ import { useAuth } from '@/Hooks';
 import { getInitials } from '@/Helpers';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/Constants';
+import { UserRole } from '@/Interfaces';
 
 const { Header: AntHeader } = Layout;
 
@@ -44,12 +45,12 @@ export const Header: React.FC = () => {
     }
   };
 
-  // Check if user is admin
-  const isAdmin = user?.isAdmin || false;
+  // Check if user is SuperAdmin
+  const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
 
   const menuItems: MenuProps['items'] = [
-    // Only show settings for admins
-    ...(isAdmin ? [{
+    // Only show settings for SuperAdmins
+    ...(isSuperAdmin ? [{
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',

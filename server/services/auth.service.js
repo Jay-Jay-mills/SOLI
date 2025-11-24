@@ -95,7 +95,6 @@ class AuthService {
       role: user.isAdmin ? 'admin' : 'user',
       status: user.isActive ? 'active' : 'inactive',
       isAdmin: user.isAdmin,
-      isSOLI: user.isSOLI,
       isActive: user.isActive,
       created: user.created,
       createdBy: user.createdBy,

@@ -8,13 +8,13 @@ import { createProjectFolder, renameProjectFolder, deleteProjectFolder } from '.
  */
 export const getProjects = async (req, res, next) => {
   try {
-    const userIsSOLI = req.user?.isSOLI || false;
-
-    // Filter projects based on user's SOLI status
+    // Get all projects (no filtering by isSOLI)
     const projects = await Project.find({
-      isSoli: userIsSOLI,
       isDeleted: false
-    }).sort({ created: -1 });
+    })
+      .populate('admins', 'firstName lastName email username')
+      .populate('users', 'firstName lastName email username')
+      .sort({ created: -1 });
 
     res.status(200).json({
       success: true,
@@ -32,7 +32,6 @@ export const getProjects = async (req, res, next) => {
 export const getProjectById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const userIsSOLI = req.user?.isSOLI || false;
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -44,9 +43,10 @@ export const getProjectById = async (req, res, next) => {
 
     const project = await Project.findOne({
       _id: id,
-      isSoli: userIsSOLI,
       isDeleted: false
-    });
+    })
+      .populate('admins', 'firstName lastName email username')
+      .populate('users', 'firstName lastName email username');
 
     if (!project) {
       return res.status(404).json({
@@ -70,7 +70,7 @@ export const getProjectById = async (req, res, next) => {
  */
 export const createProject = async (req, res, next) => {
   try {
-    const { name, description, status } = req.body;
+    const { name, description, status, admins, users } = req.body;
     const userId = req.user?.username || 'system';
     const userIsSOLI = req.user?.isSOLI || false;
 
@@ -87,6 +87,8 @@ export const createProject = async (req, res, next) => {
       name,
       description,
       status: status || 'active',
+      admins: admins || [],
+      users: users || [],
       isSoli: userIsSOLI,
       isDeleted: false,
       createdBy: userId,
@@ -117,9 +119,8 @@ export const createProject = async (req, res, next) => {
 export const updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, description, status } = req.body;
+    const { name, description, status, admins, users } = req.body;
     const userId = req.user?.username || 'system';
-    const userIsSOLI = req.user?.isSOLI || false;
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -131,7 +132,6 @@ export const updateProject = async (req, res, next) => {
 
     const project = await Project.findOne({
       _id: id,
-      isSoli: userIsSOLI,
       isDeleted: false
     });
 
@@ -150,6 +150,8 @@ export const updateProject = async (req, res, next) => {
     if (name) project.name = name;
     if (description) project.description = description;
     if (status) project.status = status;
+    if (admins) project.admins = admins;
+    if (users) project.users = users;
     project.updated = new Date();
     project.updatedBy = userId;
 
@@ -182,7 +184,6 @@ export const deleteProject = async (req, res, next) => {
   try {
     const { id } = req.params;
     const userId = req.user?.username || 'system';
-    const userIsSOLI = req.user?.isSOLI || false;
 
     // Validate MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -194,7 +195,6 @@ export const deleteProject = async (req, res, next) => {
 
     const project = await Project.findOne({
       _id: id,
-      isSoli: userIsSOLI,
       isDeleted: false
     });
 
@@ -237,11 +237,9 @@ export const deleteProject = async (req, res, next) => {
 export const getProjectsByStatus = async (req, res, next) => {
   try {
     const { status } = req.params;
-    const userIsSOLI = req.user?.isSOLI || false;
 
     const projects = await Project.find({
       status,
-      isSoli: userIsSOLI,
       isDeleted: false
     }).sort({ created: -1 });
 

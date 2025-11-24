@@ -6,3 +6,4 @@ export * from './file.interface';
 export * from './project.interface';
 export * from './form.interface';
 export * from './customer.interface';
+export * from './userGroup.interface';
