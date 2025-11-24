@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button, Spin, Card, Tag, Space, message, Table, Popconfirm, Typography, Empty, Divider } from 'antd';
-import { 
-  ArrowLeftOutlined, 
+import {
+  ArrowLeftOutlined,
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
@@ -14,7 +14,7 @@ import { useAuth } from '@/Hooks';
 import { ROUTES } from '@/Constants';
 import { FormBuilderModal, DataEntryModal } from '@/Components/Molecules';
 import { formService, projectService } from '@/Services';
-import type { Project, ProjectForm, FormSubmission, CreateFormDto } from '@/Interfaces';
+import { type Project, type ProjectForm, type FormSubmission, type CreateFormDto, UserRole } from '@/Interfaces';
 
 const { Title, Text } = Typography;
 
@@ -34,7 +34,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
   const [formLoading, setFormLoading] = useState(false);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
 
-  const isAdmin = user?.role === 'admin' || user?.isAdmin;
+  const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
 
   useEffect(() => {
     loadProject();
@@ -185,9 +185,9 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
               // Extract relative path from full path (remove 'uploads/' prefix if present)
               const relativePath = file.path ? file.path.replace(/^uploads[\\/]/, '') : file.filename;
               const fileUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/uploads/${relativePath}`;
-              
+
               return (
-                <a 
+                <a
                   key={index}
                   href={fileUrl}
                   target="_blank"
@@ -262,7 +262,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
 
   if (!project) {
     return (
-      <div style={{ 
+      <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -286,7 +286,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
         >
           Back to Dashboard
         </Button>
-        {isAdmin && !projectForm && !formLoading && (
+        {isSuperAdmin && !projectForm && !formLoading && (
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -302,7 +302,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
             <Tag color="green" style={{ fontSize: '14px', padding: '6px 12px' }}>
               Form Created: {projectForm.name}
             </Tag>
-            {isAdmin && (
+            {isSuperAdmin && (
               <Button
                 icon={<EditOutlined />}
                 onClick={handleCreateForm}
@@ -344,7 +344,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
           </div>
         </Card>
       ) : projectForm && (
-        <Card 
+        <Card
           style={{ borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -374,7 +374,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
           }
         >
           <Divider style={{ margin: '16px 0' }} />
-          
+
           {/* Data Table */}
           {submissionsLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
@@ -409,7 +409,7 @@ export const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
       )}
 
       {/* Form Builder Modal */}
-      {isAdmin && (
+      {isSuperAdmin && (
         <FormBuilderModal
           open={isFormBuilderOpen}
           onCancel={() => setIsFormBuilderOpen(false)}

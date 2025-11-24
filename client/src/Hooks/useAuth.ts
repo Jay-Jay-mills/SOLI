@@ -2,7 +2,7 @@
 
 import { useAuthStore } from '@/State';
 import { authService } from '@/Services';
-import type { LoginCredentials, UserRole } from '@/Interfaces';
+import { LoginCredentials, UserRole } from '@/Interfaces';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/Constants';
 
@@ -37,7 +37,12 @@ export const useAuth = () => {
       
       // Fetch user data after successful login
       const userResponse = await authService.getMe();
-      setUser(userResponse.data);
+      // Normalize role to match UserRole enum
+      const normalizedUser = {
+        ...userResponse.data,
+        role: userResponse.data.role?.toLowerCase() === 'superadmin' ? UserRole.SUPERADMIN : userResponse.data.role as UserRole,
+      };
+      setUser(normalizedUser);
       
       // Redirect to dashboard
       router.push(ROUTES.DASHBOARD);

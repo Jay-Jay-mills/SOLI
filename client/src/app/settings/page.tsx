@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tabs, Button } from 'antd';
-import { UserOutlined, TeamOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { UserOutlined, TeamOutlined, ArrowLeftOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { MainLayout } from '@/Layouts';
-import { UserManagement, CustomerManagement } from '@/Containers';
+import { UserManagement, CustomerManagement, UserGroupManagement } from '@/Containers';
 import { useProtectedRoute, useAuth } from '@/Hooks';
 import { UserRole } from '@/Interfaces';
 import { ROUTES } from '@/Constants';
 
 export default function SettingsPage() {
-  useProtectedRoute(UserRole.ADMIN);
+  useProtectedRoute(UserRole.SUPERADMIN);
   const { user } = useAuth();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
@@ -20,7 +20,7 @@ export default function SettingsPage() {
     setIsMounted(true);
   }, []);
   
-  const isSOLI = user?.isSOLI || false;
+  const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
 
   const handleBack = () => {
     router.push(ROUTES.DASHBOARD);
@@ -61,8 +61,8 @@ export default function SettingsPage() {
     },
   ];
 
-  // Add Customer Management tab only for SOLI admins
-  if (isSOLI) {
+  // Add Customer Management tab only for SuperAdmins
+  if (isSuperAdmin) {
     tabItems.push({
       key: 'customers',
       label: (
@@ -72,6 +72,18 @@ export default function SettingsPage() {
         </span>
       ),
       children: <CustomerManagement />,
+    });
+    
+    // Add User Group Management tab only for SuperAdmins
+    tabItems.push({
+      key: 'usergroups',
+      label: (
+        <span>
+          <UsergroupAddOutlined />
+          User Group Management
+        </span>
+      ),
+      children: <UserGroupManagement />,
     });
   }
 

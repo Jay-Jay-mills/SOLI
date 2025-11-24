@@ -21,6 +21,14 @@ const projectSchema = new mongoose.Schema({
     },
     default: 'active'
   },
+  admins: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  users: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   isSoli: {
     type: Boolean,
     required: [true, 'isSoli is required'],
@@ -50,9 +58,9 @@ const projectSchema = new mongoose.Schema({
   }
 }, {
   timestamps: false,
-  toJSON: { 
+  toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
@@ -68,7 +76,7 @@ projectSchema.index({ status: 1, isDeleted: 1 });
 projectSchema.index({ createdBy: 1, isDeleted: 1 });
 
 // Pre-save middleware to update timestamps
-projectSchema.pre('save', function(next) {
+projectSchema.pre('save', function (next) {
   if (!this.isNew && this.isModified()) {
     this.updated = new Date();
   }

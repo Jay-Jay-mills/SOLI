@@ -1,6 +1,8 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const User = require('../models/User');
+import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+
+dotenv.config();
 
 const connectDB = async () => {
   try {
@@ -18,19 +20,9 @@ const createAdminUsers = async () => {
 
     const adminsToCreate = [
       {
-        username: 'SOLIAdmin',
-        password: 'soli123',
-        isAdmin: true,
-        isSOLI: true,
-        isActive: true,
-        createdBy: 'system',
-        updatedBy: 'system'
-      },
-      {
-        username: 'GRIRAdmin',
-        password: 'grir123',
-        isAdmin: true,
-        isSOLI: false,
+        username: 'SuperAdmin',
+        password: 'superadmin123',
+        role: 'superadmin',
         isActive: true,
         createdBy: 'system',
         updatedBy: 'system'
@@ -46,8 +38,7 @@ const createAdminUsers = async () => {
       if (adminExists) {
         console.log(`⚠️  ${adminData.username} already exists`);
         console.log(`   Username: ${adminExists.username}`);
-        console.log(`   Is Admin: ${adminExists.isAdmin}`);
-        console.log(`   Is SOLI: ${adminExists.isSOLI}`);
+        console.log(`   Role: ${adminExists.role}`);
         console.log(`   Is Active: ${adminExists.isActive}\n`);
         continue;
       }
@@ -59,7 +50,7 @@ const createAdminUsers = async () => {
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log(`Username: ${adminData.username}`);
       console.log(`Password: ${adminData.password}`);
-      console.log(`Is SOLI: ${adminData.isSOLI}`);
+      console.log(`Role: ${adminData.role}`);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     }
 

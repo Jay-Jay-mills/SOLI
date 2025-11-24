@@ -86,7 +86,7 @@ export const getMe = async (req, res, next) => {
         email: user.username + '@example.com',
         firstName: user.username,
         lastName: 'User',
-        role: user.isAdmin ? 'admin' : 'user',
+        role: user.role,
         status: user.isActive ? 'active' : 'inactive',
         isAdmin: user.isAdmin,
         isSOLI: user.isSOLI,
