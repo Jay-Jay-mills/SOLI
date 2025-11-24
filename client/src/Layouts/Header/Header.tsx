@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Layout, Avatar, Dropdown, Space, Skeleton } from 'antd';
 import { UserOutlined, LogoutOutlined, SettingOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useAuth } from '@/Hooks';
 import { getInitials } from '@/Helpers';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/Constants';
+import { UserRole } from '@/Interfaces';
 
 const { Header: AntHeader } = Layout;
 
@@ -14,18 +16,41 @@ export const Header: React.FC = () => {
   const { user, logout, isHydrated } = useAuth();
   const router = useRouter();
 
+  // set document title and favicon client-side
+  useEffect(() => {
+    try {
+      document.title = 'SOLI';
+      const head = document.getElementsByTagName('head')[0];
+      let icon = head.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+      if (!icon) {
+        icon = document.createElement('link');
+        icon.rel = 'icon';
+        head.appendChild(icon);
+      }
+      // prefer svg favicon placed in public folder
+      icon.href = '/favicon.svg';
+    } catch (e) {
+      // silent fallback if DOM not available or script blocked
+      // (Next.js server renders first; this only runs client-side)
+    }
+  }, []);
+
+  const handleLogoClick = () => {
+    router.push(ROUTES.DASHBOARD);
+  };
+
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key === 'settings') {
       router.push('/settings');
     }
   };
 
-  // Check if user is admin
-  const isAdmin = user?.isAdmin || false;
+  // Check if user is SuperAdmin
+  const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
 
   const menuItems: MenuProps['items'] = [
-    // Only show settings for admins
-    ...(isAdmin ? [{
+    // Only show settings for SuperAdmins
+    ...(isSuperAdmin ? [{
       key: 'settings',
       icon: <SettingOutlined />,
       label: 'Settings',
@@ -70,20 +95,30 @@ export const Header: React.FC = () => {
         justifyContent: 'space-between',
         height: '64px'
       }}>
-        <h1 style={{ 
-          color: '#ffffff', 
-          fontSize: '24px', 
-          fontWeight: 700,
-          letterSpacing: '-0.5px',
-          margin: 0,
-          padding: 0,
-          lineHeight: '64px'
-        }}>
-          <span style={{
-            color: '#667eea',
-            fontWeight: 800
-          }}>SOLI</span>
-        </h1>
+        {/* Logo: clickable image (fallback to text for accessibility) */}
+        <div
+          role="button"
+          aria-label="Go to dashboard"
+          onClick={handleLogoClick}
+          style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+        >
+             <img
+               src="/SOLI.png"
+               alt="SOLI logo"
+               style={{ height: 24, width: 'auto', display: 'block' }}
+               draggable={false}
+               onError={(e) => {
+                 // If SOLI.png isn't present, fall back to the SVG we created earlier
+                 const target = e.currentTarget as HTMLImageElement;
+                 if (target.src.endsWith('/SOLI.png')) target.src = '/logo.svg';
+               }}
+             />
+          <span style={{ color: '#ffffff', fontSize: 18, fontWeight: 700, letterSpacing: '-0.3px' }} aria-hidden>
+            SOLI
+          </span>
+        </div>
         
         {!isHydrated ? (
           <Space style={{ display: 'flex', alignItems: 'center' }}>

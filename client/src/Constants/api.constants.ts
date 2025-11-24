@@ -10,7 +10,7 @@ export const API_ENDPOINTS = {
   // Users
   USERS: '/users',
   USER_BY_ID: (id: string) => `/users/${id}`,
-  USER_PROFILE: '/auth/me', // Updated to match backend /api/auth/me
+  USER_PROFILE: '/auth/me',
   UPDATE_USER: (id: string) => `/users/${id}`,
   DELETE_USER: (id: string) => `/users/${id}`,
 

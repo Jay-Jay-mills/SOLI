@@ -47,13 +47,17 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Admin only access
-export const authorize = (...roles) => {
+// Role-based authorization
+export const authorize = (...allowedRoles) => {
   return (req, res, next) => {
-    if (roles.includes('admin') && !req.user.isAdmin) {
+    // Get user role from the role field or fallback to isAdmin
+    const userRole = req.user.role || (req.user.isAdmin ? 'admin' : 'user');
+    
+    // Check if user's role is in the allowed roles
+    if (!allowedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
-        message: 'User role is not authorized to access this route'
+        message: `Access denied. Required role: ${allowedRoles.join(' or ')}. Your role: ${userRole}`
       });
     }
     next();

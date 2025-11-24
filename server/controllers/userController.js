@@ -23,8 +23,7 @@ export const getUsers = async (req, res, next) => {
         users: users.map(user => ({
           id: user._id,
           username: user.username,
-          isAdmin: user.isAdmin,
-          isSOLI: user.isSOLI,
+          role: user.role,
           isActive: user.isActive,
           created: user.created,
           createdBy: user.createdBy,
@@ -63,8 +62,7 @@ export const getUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        isAdmin: user.isAdmin,
-        isSOLI: user.isSOLI,
+        role: user.role,
         isActive: user.isActive,
         created: user.created,
         createdBy: user.createdBy,
@@ -82,7 +80,7 @@ export const getUser = async (req, res, next) => {
 // @access  Private/Admin
 export const createUser = async (req, res, next) => {
   try {
-    const { username, password, isAdmin } = req.body;
+    const { username, password, role } = req.body;
 
     // Validate input
     if (!username || !password) {
@@ -105,10 +103,8 @@ export const createUser = async (req, res, next) => {
     const user = await User.create({
       username,
       password,
-      isAdmin: isAdmin || false,
-      isSOLI: req.user?.isSOLI || false, // Inherit from creator
-      isActive: true, // Always active on creation
-      // System fields - auto-populated
+      role: role || 'user',
+      isActive: true,
       created: new Date(),
       createdBy: req.user?.username || 'system',
       updated: null,
@@ -121,8 +117,7 @@ export const createUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        isAdmin: user.isAdmin,
-        isSOLI: user.isSOLI,
+        role: user.role,
         isActive: user.isActive,
         created: user.created,
         createdBy: user.createdBy,
@@ -140,7 +135,7 @@ export const createUser = async (req, res, next) => {
 // @access  Private/Admin
 export const updateUser = async (req, res, next) => {
   try {
-    const { username, password, isAdmin, isSOLI, isActive } = req.body;
+    const { username, password, role, isActive } = req.body;
 
     const user = await User.findById(req.params.id);
 
@@ -154,8 +149,7 @@ export const updateUser = async (req, res, next) => {
     // Update fields
     if (username) user.username = username;
     if (password) user.password = password;
-    if (typeof isAdmin !== 'undefined') user.isAdmin = isAdmin;
-    if (typeof isSOLI !== 'undefined') user.isSOLI = isSOLI;
+    if (role) user.role = role;
     if (typeof isActive !== 'undefined') user.isActive = isActive;
     
     // Update system fields - preserve created/createdBy, update updated/updatedBy
@@ -170,8 +164,7 @@ export const updateUser = async (req, res, next) => {
       data: {
         id: user._id,
         username: user.username,
-        isAdmin: user.isAdmin,
-        isSOLI: user.isSOLI,
+        role: user.role,
         isActive: user.isActive,
         created: user.created,
         createdBy: user.createdBy,

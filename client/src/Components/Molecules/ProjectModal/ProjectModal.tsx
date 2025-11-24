@@ -2,7 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { Modal, Form, Input, Select, message } from 'antd';
-import type { Project, CreateProjectDto } from '@/Interfaces';
+import type { Project, CreateProjectDto, User, UserGroup } from '@/Interfaces';
+import { userService, userGroupService } from '@/Services';
 
 const { TextArea } = Input;
 
@@ -23,6 +24,59 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [userGroups, setUserGroups] = React.useState<UserGroup[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [usersResponse, groupsResponse] = await Promise.all([
+          userService.getUsers({ pageSize: 1000 }),
+          userGroupService.getUserGroups({ pageSize: 1000 })
+        ]);
+        setUsers(usersResponse.data);
+        setUserGroups(groupsResponse.data);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        message.error('Failed to load users or groups');
+      }
+    };
+
+    if (open) {
+      fetchData();
+    }
+  }, [open]);
+
+  const handleUserGroupChange = (selectedGroupIds: string[]) => {
+    // Get current selections
+    const currentAdmins = form.getFieldValue('admins') || [];
+    const currentUsers = form.getFieldValue('users') || [];
+
+    const newAdmins = new Set(currentAdmins);
+    const newUsers = new Set(currentUsers);
+
+    selectedGroupIds.forEach(groupId => {
+      const group = userGroups.find(g => g.id === groupId || (g as any)._id === groupId);
+      if (group) {
+        // Add group admins
+        group.admins.forEach((admin: any) => {
+          const adminId = typeof admin === 'string' ? admin : (admin._id || admin.id);
+          if (adminId) newAdmins.add(adminId);
+        });
+        // Add group members
+        group.users.forEach((user: any) => {
+          const userId = typeof user === 'string' ? user : (user._id || user.id);
+          if (userId) newUsers.add(userId);
+        });
+      }
+    });
+
+    // Update form values
+    form.setFieldsValue({
+      admins: Array.from(newAdmins),
+      users: Array.from(newUsers)
+    });
+  };
 
   useEffect(() => {
     if (open && project && mode === 'edit') {
@@ -30,6 +84,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
         name: project.name,
         description: project.description,
         status: project.status,
+        admins: project.admins?.map((a: any) => a._id || a.id || a) || [],
+        users: project.users?.map((u: any) => u._id || u.id || u) || [],
       });
     } else if (open && mode === 'create') {
       form.resetFields();
@@ -98,6 +154,72 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
             rows={4}
             size="large"
           />
+        </Form.Item>
+
+        <Form.Item
+          label="Add from User Group"
+          tooltip="Select a user group to automatically add its admins and members to this project"
+        >
+          <Select
+            mode="multiple"
+            placeholder="Select user groups to add users"
+            size="large"
+            onChange={handleUserGroupChange}
+            optionFilterProp="children"
+            filterOption={(input, option: any) =>
+              (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+            }
+          >
+            {userGroups.map((group) => (
+              <Select.Option key={group.id || (group as any)._id} value={group.id || (group as any)._id}>
+                {group.name}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="Group Admins"
+          name="admins"
+          tooltip="Select users who will have admin access to this project"
+        >
+          <Select
+            mode="multiple"
+            placeholder="Select group admins"
+            size="large"
+            optionFilterProp="children"
+            filterOption={(input, option: any) =>
+              (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+            }
+          >
+            {users.map((user) => (
+              <Select.Option key={user.id} value={user.id}>
+                {user.firstName} {user.lastName} ({user.username})
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="Group Members"
+          name="users"
+          tooltip="Select users who will be members of this project"
+        >
+          <Select
+            mode="multiple"
+            placeholder="Select group members"
+            size="large"
+            optionFilterProp="children"
+            filterOption={(input, option: any) =>
+              (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+            }
+          >
+            {users.map((user) => (
+              <Select.Option key={user.id} value={user.id}>
+                {user.firstName} {user.lastName} ({user.username})
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         {mode === 'edit' && (

@@ -16,15 +16,11 @@ const userSchema = new mongoose.Schema({
     minlength: [6, 'Password must be at least 6 characters'],
     select: false // Don't include password in queries by default
   },
-  isAdmin: {
-    type: Boolean,
-    required: [true, 'isAdmin is required'],
-    default: false
-  },
-  isSOLI: {
-    type: Boolean,
-    required: [true, 'isSOLI is required'],
-    default: false
+  role: {
+    type: String,
+    enum: ['superadmin', 'admin', 'user'],
+    required: [true, 'Role is required'],
+    default: undefined // Remove default to ensure explicit role assignment
   },
   isActive: {
     type: Boolean,

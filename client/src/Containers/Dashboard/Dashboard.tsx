@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ProjectCard, ProjectModal } from '@/Components/Molecules';
 import { useAuth } from '@/Hooks';
 import { projectService } from '@/Services';
-import type { Project, CreateProjectDto, UpdateProjectDto } from '@/Interfaces';
+import { type Project, type CreateProjectDto, type UpdateProjectDto, UserRole } from '@/Interfaces';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -23,10 +23,10 @@ export const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const isAdmin = user?.role === 'admin' || user?.isAdmin;
   const totalProjects = projects.length;
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const completedProjects = projects.filter(p => p.status === 'completed').length;
+  const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
 
   // Load projects on mount
   useEffect(() => {
@@ -114,11 +114,11 @@ export const Dashboard: React.FC = () => {
             Welcome back, {user?.firstName || 'User'}! Here's what's happening with your projects.
           </p>
         </div>
-        {isAdmin && (
-          <Button 
-            type="primary" 
-            size="large" 
-            icon={<PlusOutlined />} 
+        {isSuperAdmin && (
+          <Button
+            type="primary"
+            size="large"
+            icon={<PlusOutlined />}
             onClick={handleCreateProject}
             style={{
               height: '44px',
@@ -137,9 +137,9 @@ export const Dashboard: React.FC = () => {
       {/* Statistics Cards */}
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={12} lg={8}>
-          <Card 
-            bordered={false} 
-            style={{ 
+          <Card
+            bordered={false}
+            style={{
               borderRadius: '12px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
               transition: 'all 0.3s ease',
@@ -172,9 +172,9 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card 
-            bordered={false} 
-            style={{ 
+          <Card
+            bordered={false}
+            style={{
               borderRadius: '12px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
               transition: 'all 0.3s ease',
@@ -207,9 +207,9 @@ export const Dashboard: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={8}>
-          <Card 
-            bordered={false} 
-            style={{ 
+          <Card
+            bordered={false}
+            style={{
               borderRadius: '12px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
               transition: 'all 0.3s ease',
@@ -244,9 +244,9 @@ export const Dashboard: React.FC = () => {
       </Row>
 
       {/* Filters and Search */}
-      <Card 
-        bordered={false} 
-        style={{ 
+      <Card
+        bordered={false}
+        style={{
           borderRadius: '12px',
           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
         }}
@@ -255,32 +255,32 @@ export const Dashboard: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1f1f1f', margin: 0, letterSpacing: '-0.3px' }}>
-              Projects
+              Sales Order Projects
             </h2>
             <p style={{ fontSize: '14px', color: '#8c8c8c', margin: '6px 0 0 0' }}>
               Manage and view all your projects in one place
             </p>
           </div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Search 
-              placeholder="Search projects by name or description..." 
-              prefix={<SearchOutlined style={{ color: '#8c8c8c' }} />} 
-              allowClear 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              style={{ 
-                width: 320, 
-                minWidth: 200, 
-                flex: '1 1 200px', 
+            <Search
+              placeholder="Search projects by name or description..."
+              prefix={<SearchOutlined style={{ color: '#8c8c8c' }} />}
+              allowClear
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: 320,
+                minWidth: 200,
+                flex: '1 1 200px',
                 maxWidth: '500px'
-              }} 
+              }}
               size="large"
             />
-            <Select 
-              value={statusFilter} 
-              onChange={setStatusFilter} 
-              size="large" 
-              style={{ width: 160 }} 
+            <Select
+              value={statusFilter}
+              onChange={setStatusFilter}
+              size="large"
+              style={{ width: 160 }}
               suffixIcon={<FilterOutlined />}
             >
               <Option value="all">All Status</Option>
@@ -295,9 +295,9 @@ export const Dashboard: React.FC = () => {
       {/* Projects Grid */}
       <Spin spinning={loading}>
         {filteredProjects.length === 0 ? (
-          <Card 
-            bordered={false} 
-            style={{ 
+          <Card
+            bordered={false}
+            style={{
               borderRadius: '12px',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
               minHeight: '300px',
@@ -306,7 +306,7 @@ export const Dashboard: React.FC = () => {
               justifyContent: 'center'
             }}
           >
-            <Empty 
+            <Empty
               description={
                 <div>
                   <p style={{ color: '#262626', fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>
@@ -320,13 +320,13 @@ export const Dashboard: React.FC = () => {
                       : 'Create your first project to get started!'}
                   </p>
                 </div>
-              } 
+              }
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
-              {isAdmin && !searchQuery && statusFilter === 'all' && (
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
+              {isSuperAdmin && !searchQuery && statusFilter === 'all' && (
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
                   onClick={handleCreateProject}
                   size="large"
                   style={{ marginTop: '16px', borderRadius: '8px' }}
@@ -342,38 +342,38 @@ export const Dashboard: React.FC = () => {
               <Col xs={24} sm={12} lg={8} xl={6} key={project.id}>
                 <div style={{ position: 'relative', height: '100%' }} className="project-card-wrapper">
                   <ProjectCard project={project} onClick={() => handleProjectClick(project.id)} />
-                  {isAdmin && (
-                    <div 
+                  {isSuperAdmin && (
+                    <div
                       className="project-card-actions"
-                      style={{ 
-                        position: 'absolute', 
-                        top: '12px', 
-                        right: '12px', 
-                        display: 'flex', 
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        display: 'flex',
                         gap: '8px',
                         opacity: 0,
                         transition: 'opacity 0.3s ease'
                       }}
                     >
-                      <Button 
-                        type="primary" 
-                        size="small" 
-                        icon={<EditOutlined />} 
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<EditOutlined />}
                         onClick={(e) => handleEditProject(e, project)}
                         style={{ borderRadius: '6px' }}
                       />
-                      <Popconfirm 
-                        title="Delete project" 
-                        description="Are you sure you want to delete this project?" 
-                        onConfirm={(e) => handleDeleteProject(e as any, project.id)} 
-                        okText="Yes" 
-                        cancelText="No" 
+                      <Popconfirm
+                        title="Delete project"
+                        description="Are you sure you want to delete this project?"
+                        onConfirm={(e) => handleDeleteProject(e as any, project.id)}
+                        okText="Yes"
+                        cancelText="No"
                         okButtonProps={{ danger: true }}
                       >
-                        <Button 
-                          danger 
-                          size="small" 
-                          icon={<DeleteOutlined />} 
+                        <Button
+                          danger
+                          size="small"
+                          icon={<DeleteOutlined />}
                           onClick={(e) => e.stopPropagation()}
                           style={{ borderRadius: '6px' }}
                         />
@@ -387,12 +387,12 @@ export const Dashboard: React.FC = () => {
         )}
       </Spin>
 
-      <ProjectModal 
-        open={modalOpen} 
-        mode={modalMode} 
-        project={selectedProject} 
-        onSubmit={handleSubmitProject} 
-        onClose={() => setModalOpen(false)} 
+      <ProjectModal
+        open={modalOpen}
+        mode={modalMode}
+        project={selectedProject}
+        onSubmit={handleSubmitProject}
+        onClose={() => setModalOpen(false)}
       />
 
       <style jsx>{`

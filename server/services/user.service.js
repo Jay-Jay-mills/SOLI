@@ -57,11 +57,18 @@ class UserService {
    * @returns {object} Created user
    */
   async createUser(userData, creatorId) {
-    const { username, password, isAdmin, isSOLI, isActive } = userData;
+    const { username, password, role, isActive } = userData;
 
     // Validate input
     if (!username || !password) {
       throw new Error('Please provide username and password');
+    }
+
+    // Validate role
+    const validRoles = ['superadmin', 'admin', 'user'];
+    const userRole = role || 'user';
+    if (!validRoles.includes(userRole)) {
+      throw new Error('Invalid role. Must be superadmin, admin, or user');
     }
 
     // Check if user already exists
@@ -77,8 +84,7 @@ class UserService {
     const user = await User.create({
       username,
       password,
-      isAdmin: isAdmin || false,
-      isSOLI: isSOLI || false,
+      role: userRole,
       isActive: isActive !== undefined ? isActive : true,
       createdBy: creatorId || 'system',
       updatedBy: creatorId || 'system'
@@ -107,11 +113,20 @@ class UserService {
     }
 
     // Update allowed fields
-    const allowedUpdates = ['username', 'password', 'isAdmin', 'isSOLI', 'isActive'];
+    const allowedUpdates = ['username', 'password', 'role', 'isActive'];
     
     allowedUpdates.forEach(field => {
       if (updateData[field] !== undefined) {
-        user[field] = updateData[field];
+        // Validate role if it's being updated
+        if (field === 'role') {
+          const validRoles = ['superadmin', 'admin', 'user'];
+          if (!validRoles.includes(updateData[field])) {
+            throw new Error('Invalid role. Must be superadmin, admin, or user');
+          }
+          user[field] = updateData[field];
+        } else {
+          user[field] = updateData[field];
+        }
       }
     });
 
@@ -165,9 +180,8 @@ class UserService {
       email: user.username + '@example.com',
       firstName: user.username,
       lastName: 'User',
-      role: user.isAdmin ? 'admin' : 'user',
+      role: user.role,
       status: user.isActive ? 'active' : 'inactive',
-      isSOLI: user.isSOLI,
       isActive: user.isActive,
       created: user.created,
       createdBy: user.createdBy,
