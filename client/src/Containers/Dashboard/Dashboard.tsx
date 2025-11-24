@@ -27,6 +27,7 @@ export const Dashboard: React.FC = () => {
   const activeProjects = projects.filter(p => p.status === 'active').length;
   const completedProjects = projects.filter(p => p.status === 'completed').length;
   const isSuperAdmin = user?.role === UserRole.SUPERADMIN;
+  const isAdmin = user?.role === UserRole.ADMIN;
 
   // Load projects on mount
   useEffect(() => {
@@ -342,6 +343,7 @@ export const Dashboard: React.FC = () => {
               <Col xs={24} sm={12} lg={8} xl={6} key={project.id}>
                 <div style={{ position: 'relative', height: '100%' }} className="project-card-wrapper">
                   <ProjectCard project={project} onClick={() => handleProjectClick(project.id)} />
+                  {/* Super Admin: Full control (Edit + Delete) */}
                   {isSuperAdmin && (
                     <div
                       className="project-card-actions"
@@ -378,6 +380,31 @@ export const Dashboard: React.FC = () => {
                           style={{ borderRadius: '6px' }}
                         />
                       </Popconfirm>
+                    </div>
+                  )}
+
+                  {/* Admin: Can only manage members (Edit members only) */}
+                  {isAdmin && !isSuperAdmin && (
+                    <div
+                      className="project-card-actions"
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        right: '12px',
+                        display: 'flex',
+                        gap: '8px',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease'
+                      }}
+                    >
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) => handleEditProject(e, project)}
+                        style={{ borderRadius: '6px' }}
+                        title="Manage Members"
+                      />
                     </div>
                   )}
                 </div>

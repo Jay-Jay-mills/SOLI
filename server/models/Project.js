@@ -29,11 +29,6 @@ const projectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  isSoli: {
-    type: Boolean,
-    required: [true, 'isSoli is required'],
-    default: false
-  },
   isDeleted: {
     type: Boolean,
     required: [true, 'isDeleted is required'],
@@ -71,7 +66,7 @@ const projectSchema = new mongoose.Schema({
 });
 
 // Indexes for faster queries
-projectSchema.index({ isSoli: 1, isDeleted: 1, created: -1 });
+projectSchema.index({ isDeleted: 1, created: -1 });
 projectSchema.index({ status: 1, isDeleted: 1 });
 projectSchema.index({ createdBy: 1, isDeleted: 1 });
 

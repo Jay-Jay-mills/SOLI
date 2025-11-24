@@ -6,6 +6,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, TeamOutlined, EyeOutlined }
 import type { ColumnsType } from 'antd/es/table';
 import { userGroupService, userService } from '@/Services';
 import type { UserGroup, CreateUserGroupDto, UpdateUserGroupDto, User } from '@/Interfaces';
+import { UserRole } from '@/Interfaces';
 import { formatDate } from '@/Helpers';
 import { ViewUserGroupModal } from './ViewUserGroupModal';
 
@@ -307,14 +308,16 @@ export const UserGroupManagement: React.FC = () => {
           >
             <Select
               mode="multiple"
-              placeholder="Select group admins"
-              options={users.map(user => ({
-                label: `${user.username} (${user.role})`,
-                value: (user as any)._id || user.id,
-              }))}
+              placeholder="Select group admins (filtered)"
+              options={users
+                .filter(user => user.role === UserRole.ADMIN)
+                .map(user => ({
+                  label: `${user.username} (${user.role})`,
+                  value: user.id,
+                }))}
               showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              filterOption={(input, option: any) =>
+                option?.label?.toLowerCase().includes(input.toLowerCase())
               }
             />
           </Form.Item>
@@ -326,14 +329,16 @@ export const UserGroupManagement: React.FC = () => {
           >
             <Select
               mode="multiple"
-              placeholder="Select group members"
-              options={users.map(user => ({
-                label: `${user.username} (${user.role})`,
-                value: (user as any)._id || user.id,
-              }))}
+              placeholder="Select group members (filtered)"
+              options={users
+                .filter(user => user.role === UserRole.USER)
+                .map(user => ({
+                  label: `${user.username} (${user.role})`,
+                  value: user.id,
+                }))}
               showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              filterOption={(input, option: any) =>
+                option?.label?.toLowerCase().includes(input.toLowerCase())
               }
             />
           </Form.Item>
