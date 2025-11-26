@@ -5,3 +5,4 @@ export * from './Dashboard';
 export * from './ProjectDetail';
 export * from './CustomerManagement';
 export * from './UserGroupManagement';
+export * from './DeletedProjects';

@@ -116,22 +116,38 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
         {isSuperAdmin && (
-          <Button
-            type="primary"
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={handleCreateProject}
-            style={{
-              height: '44px',
-              padding: '0 24px',
-              fontSize: '15px',
-              fontWeight: '600',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
-            }}
-          >
-            Create Project
-          </Button>
+          <Space size="middle">
+            <Button
+              size="large"
+              icon={<DeleteOutlined />}
+              onClick={() => router.push('/projects/deleted')}
+              style={{
+                height: '44px',
+                padding: '0 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                borderRadius: '8px',
+              }}
+            >
+              Recycle Bin
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
+              onClick={handleCreateProject}
+              style={{
+                height: '44px',
+                padding: '0 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
+              }}
+            >
+              Create Project
+            </Button>
+          </Space>
         )}
       </div>
 

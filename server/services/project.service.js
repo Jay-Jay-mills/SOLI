@@ -70,6 +70,12 @@ export const createProject = async (projectData, createdBy) => {
         throw new Error('Name and description are required');
     }
 
+    // Check if project with same name exists
+    const existingProject = await Project.findOne({ name });
+    if (existingProject) {
+        throw new Error('Project with this name already exists');
+    }
+
     // Create project
     const project = await Project.create({
         name,
@@ -186,4 +192,109 @@ export const getProjectsByStatus = async (status) => {
     }).sort({ created: -1 });
 
     return projects;
+};
+
+/**
+ * Get deleted projects (super admin only)
+ */
+export const getDeletedProjects = async () => {
+    const projects = await Project.find({
+        isDeleted: true
+    })
+        .populate('admins', 'firstName lastName email username')
+        .populate('users', 'firstName lastName email username')
+        .sort({ updated: -1 });
+
+    return projects;
+};
+
+/**
+ * Get deleted project by ID (super admin only)
+ */
+export const getDeletedProjectById = async (projectId) => {
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error('Invalid project ID format');
+    }
+
+    const project = await Project.findOne({
+        _id: projectId,
+        isDeleted: true
+    })
+        .populate('admins', 'firstName lastName email username')
+        .populate('users', 'firstName lastName email username');
+
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    return project;
+};
+
+/**
+ * Restore deleted project (super admin only)
+ */
+export const restoreProject = async (projectId, updatedBy) => {
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error('Invalid project ID format');
+    }
+
+    const project = await Project.findOne({
+        _id: projectId,
+        isDeleted: true
+    });
+
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    // Restore project
+    project.isDeleted = false;
+    project.updated = new Date();
+    project.updatedBy = updatedBy;
+    await project.save();
+
+    // Recreate project folder
+    const folderResult = createProjectFolder(project.name);
+    if (!folderResult.success) {
+        console.error('Failed to recreate project folder:', folderResult.error);
+        // Continue anyway - folder creation is not critical
+    }
+
+    return project;
+};
+
+/**
+ * Permanently delete project (super admin only)
+ */
+export const permanentlyDeleteProject = async (projectId) => {
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        throw new Error('Invalid project ID format');
+    }
+
+    const project = await Project.findOne({
+        _id: projectId,
+        isDeleted: true
+    });
+
+    if (!project) {
+        throw new Error('Project not found');
+    }
+
+    // Store project name for folder deletion
+    const projectName = project.name;
+
+    // Permanently delete from database
+    await Project.deleteOne({ _id: projectId });
+
+    // Delete project folder if it exists
+    const deleteResult = deleteProjectFolder(projectName);
+    if (!deleteResult.success) {
+        console.error('Failed to delete project folder:', deleteResult.error);
+        // Continue anyway - data is deleted from DB
+    }
+
+    return { success: true };
 };
