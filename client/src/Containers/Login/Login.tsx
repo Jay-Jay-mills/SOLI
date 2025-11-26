@@ -27,7 +27,7 @@ export const Login: React.FC = () => {
 
   return (
     <div
-      className="flex min-h-screen items-center p-4 md:p-8 lg:p-12"
+      className="flex min-h-screen items-center justify-center p-4 md:p-8 lg:p-12"
       style={{
         backgroundImage: 'url("/login-bg.png")',
         backgroundSize: 'cover',
@@ -35,23 +35,22 @@ export const Login: React.FC = () => {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Gradient overlay for better contrast */}
+      {/* Dimmed overlay for better focus */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(135deg, rgba(24, 144, 255, 0.15) 0%, rgba(0, 21, 41, 0.25) 100%)',
-          backdropFilter: 'blur(1px)',
+          background: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(3px)',
         }}
       />
 
-      {/* Right-aligned login form */}
+      {/* Centered login form */}
       <div
-        className="w-full flex justify-end relative z-10"
-        style={{ paddingRight: '80px' }}
+        className="w-full flex justify-center relative z-10"
       >
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="w-full"
           style={{ maxWidth: '480px' }}
