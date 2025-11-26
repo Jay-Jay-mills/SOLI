@@ -1,0 +1,1 @@
+export { DeletedProjects } from './DeletedProjects';

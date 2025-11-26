@@ -54,6 +54,38 @@ class ProjectService {
   async deleteProject(projectId: string): Promise<void> {
     await apiService.delete<ApiResponse<void>>(`${this.BASE_PATH}/${projectId}`);
   }
+
+  /**
+   * Get deleted projects (super admin only)
+   */
+  async getDeletedProjects(): Promise<Project[]> {
+    const response = await apiService.get<ApiResponse<Project[]>>(`${this.BASE_PATH}/deleted`);
+    return response.data.data;
+  }
+
+  /**
+   * Get deleted project by ID (super admin only)
+   */
+  async getDeletedProjectById(projectId: string): Promise<Project> {
+    const response = await apiService.get<ApiResponse<Project>>(`${this.BASE_PATH}/deleted/${projectId}`);
+    return response.data.data;
+  }
+
+
+  /**
+   * Restore deleted project (super admin only)
+   */
+  async restoreProject(projectId: string): Promise<Project> {
+    const response = await apiService.put<ApiResponse<Project>>(`${this.BASE_PATH}/${projectId}/restore`, {});
+    return response.data.data;
+  }
+
+  /**
+   * Permanently delete project (super admin only)
+   */
+  async permanentlyDeleteProject(projectId: string): Promise<void> {
+    await apiService.delete<ApiResponse<void>>(`${this.BASE_PATH}/${projectId}/permanent`);
+  }
 }
 
 export const projectService = new ProjectService();
